@@ -1,0 +1,65 @@
+---
+title: "HW1"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warnings = FALSE, message = FALSE)
+```
+
+```{r}
+library(ggplot2)
+```
+
+Let's print the graph
+
+```{r}
+
+x <- seq(from=-pi/2, to=pi/2, by=0.01)
+y1 <- 2 * abs(x) - pi
+y2 <- abs(sin(2*x))
+
+df <- data.frame(x=x, y1=y1, y2=y2)
+ggplot(df, aes(x=x)) +
+  geom_line(aes(x=x, y=y1)) +
+  geom_line(aes(x=x, y=y2))
+```
+
+We will uniformly generate points inside the $(\pi) \times (\pi + 1)$ rectangle with corners in $(-\frac{\pi}{2}, -\pi), (\frac{\pi}{2}, 1)$. Then, the proportion of points inside the figure to the points outside will be equal to the proportion of figure's area to rectangle's areas. In other words:
+
+$$\frac{N_{inside}}{N_{total}} = \frac{S_{figure}}{S_{rectangle}} \implies S_{figure} = \frac{N_{inside}}{N_{total}} \cdot S_{rectangle}$$
+
+
+Let's generate $10^{5}$ points and plot them to check whether everything is fine.
+
+```{r}
+x <- runif(min=-pi/2, max=pi/2, n=100000)
+y <- runif(min=-pi, max=1, n=100000)
+
+bot_curve <- 2 * abs(x) - pi
+top_curve <- abs(sin(2*x))
+
+inside  <- (y < top_curve) & (y > bot_curve)
+
+df <- data.frame(x=x, y=y, inside=inside, 
+                 top_curve=top_curve, bot_curve=bot_curve)
+
+ggplot(df, aes(x)) +
+  geom_point(aes(x=x, y=y, col=inside), size=0.01) +
+  geom_line(aes(x=x, y=top_curve)) +
+  geom_line(aes(x=x, y=bot_curve))
+
+```
+
+The proportion of point inside is equal to `r mean(inside)`. Then
+
+$$S_{figure} = \frac{N_{inside}}{N_{total}} \cdot S_{rectangle} = `r mean(inside)` \cdot \pi \cdot (\pi + 1) \approx `r mean(inside)*pi*(pi+1)` $$
+
+If we calculate this quantity analytically, we get:
+
+$$\left|\int\limits_{-\pi/2}^{\pi/2}{(2|x| - \pi) dx}\right| + \left|\int\limits_{-\pi/2}^{\pi/2}{\sin{|2x|} dx}\right| = \frac{\pi^2}{2} + 2 \approx 6.9348$$
+
+So, the MC approximation was very close to the actual result.
