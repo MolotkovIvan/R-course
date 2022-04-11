@@ -1,0 +1,180 @@
+---
+title: "HW2 Molotkov Ivan"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r}
+library(glue)
+```
+
+## 1. Create our deck using R dataframe
+
+```{r}
+deck <- read.csv('https://raw.githubusercontent.com/AntonZamyatin/r-course/main/HW2/deck.csv')
+```
+
+## 2. Player's hands
+
+```{r}
+player_hand <- data.frame()
+dealer_hand <- data.frame()
+```
+
+## 3. shuffle_deck function
+
+Here I shuffle global deck.
+
+```{r}
+shuffle_deck <- function() {
+  deck <<- deck[sample(1:nrow(deck)), ]
+}
+```
+
+## 4. Give a card to a player
+
+```{r}
+give_card <- function(pl) {
+  if (pl == "player") {
+    player_hand <<- rbind(player_hand, deck[1, ])
+    deck <<- deck[2:nrow(deck), ]
+  } else if (pl == "dealer") {
+    dealer_hand <<- rbind(dealer_hand, deck[1, ])
+    deck <<- deck[2:nrow(deck), ]
+  }
+}
+```
+
+## 5. Chances to win
+
+If player's score is greater than 21, they lose.
+
+Otherwise, If player's score is greater than the dealer's, player wins. 
+
+Otherwise, we calculate the probability to win after the next deal.
+
+```{r}
+get_chances <- function() {
+  if (sum(player_hand$value) > 21) {
+    return(0)
+  } else if (sum(player_hand$value) >= sum(dealer_hand$value)) {
+    return(100)
+  } else {
+    next_vals <- deck$value + sum(player_hand$value)
+    is_win <- next_vals <= 21 & next_vals >= sum(dealer_hand$value)
+    return(mean(is_win) * 100)
+  }
+}
+```
+
+## 6. Print state
+
+```{r}
+print_game_state <- function() {
+  cat('Dealer\'s hand:\n')
+  for (i in 1:nrow(dealer_hand)) {
+    print(glue(dealer_hand[i, "face"], 
+               dealer_hand[i, "suit"], 
+               dealer_hand[i, "value"], .sep = ' '))
+  }
+  print(glue('sum ', sum(dealer_hand$value), '\n\n'))
+  
+  cat('Your hand:\n')
+  for (i in 1:nrow(player_hand)) {
+    print(glue(player_hand[i, "face"], 
+               player_hand[i, "suit"], 
+               player_hand[i, "value"], .sep = ' '))
+  }
+  cat(glue('sum ', sum(player_hand$value), '\n\n'))
+  
+  cat(glue('chances ', get_chances(), '%', '\n================================\n\n\n'))
+}
+
+```
+
+
+## 7. Start game function
+
+```{r}
+start_game <- function() {
+  deck <<- read.csv('https://raw.githubusercontent.com/AntonZamyatin/r-course/main/HW2/deck.csv')
+  shuffle_deck()
+  player_hand <<- data.frame()
+  dealer_hand <<- data.frame()
+
+  give_card("dealer")
+  give_card("dealer")
+  give_card("player")
+  give_card("player")
+  
+  print_game_state()
+}
+```
+
+## 8. Deal function
+
+```{r}
+deal <- function() {
+  give_card("player")
+  
+  print_game_state()
+}
+```
+
+## 9. Stop game function
+
+```{r}
+stop_game <- function() {
+  if (sum(player_hand$value) > 21 | sum(player_hand$value) < sum(dealer_hand$value)) {
+    cat("LOSE")
+  } else {
+    cat("WIN")
+  }
+}
+```
+
+# Simulated games. Player's strategy - take cards until sum is greater or equal to 15.
+
+# GAME 1
+```{r}
+start_game()
+while (sum(player_hand$value) < 15) {
+  deal()
+}
+stop_game()
+```
+
+# GAME 2
+```{r}
+start_game()
+while (sum(player_hand$value) < 15) {
+  deal()
+}
+stop_game()
+```
+
+# GAME 3
+```{r}
+start_game()
+while (sum(player_hand$value) < 15) {
+  deal()
+}
+stop_game()
+```
+
+# GAME 4
+```{r}
+start_game()
+while (sum(player_hand$value) < 15) {
+  deal()
+}
+stop_game()
+```
